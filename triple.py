@@ -41,4 +41,4 @@ def triple_spirograph(r1, r2, r3, r4, width=800, height=800, padding=50, points=
 
 
 if __name__ == '__main__':
-    triple_spirograph(250, 40, 70, 20, width=1000, height=1000, points=15000, revolutions=50)
+    triple_spirograph(250, 20, 240, 20, width=1000, height=1000, points=15000, revolutions=50)
