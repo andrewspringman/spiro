@@ -16,6 +16,7 @@ where:
 """
 
 import argparse
+import json
 import math
 import sys
 from pathlib import Path
@@ -23,14 +24,24 @@ from typing import Tuple
 
 import svgwrite
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+USER_PRESETS_FILE = SCRIPT_DIR / "presets.json"
 
-# Named presets with characteristic parameters
-PRESETS = {
-    "baroque": {"r1": 250, "r2": 1, "r3": 100, "points": 250, "revolutions": 50},
-    "intricate": {"r1": 300, "r2": 5, "r3": 80, "points": 400, "revolutions": 30},
-    "simple": {"r1": 200, "r2": 50, "r3": 100, "points": 100, "revolutions": 10},
-    "delicate": {"r1": 280, "r2": 3, "r3": 120, "points": 350, "revolutions": 40},
-}
+
+def load_presets() -> dict:
+    """Read presets from presets.json. Returns empty dict if file is missing."""
+    if USER_PRESETS_FILE.exists():
+        with open(USER_PRESETS_FILE) as f:
+            return json.load(f)
+    return {}
+
+
+def save_preset(name: str, params: dict) -> None:
+    """Add or update a named preset in presets.json."""
+    presets = load_presets()
+    presets[name] = params
+    with open(USER_PRESETS_FILE, "w") as f:
+        json.dump(presets, f, indent=2)
 
 
 def spirograph(
@@ -140,6 +151,8 @@ def generate_svg(
 
 def main():
     """CLI entry point for spirograph generator."""
+    all_presets = load_presets()
+
     parser = argparse.ArgumentParser(
         prog="spirograph",
         description="Generate beautiful spirograph patterns using mathematics.",
@@ -147,16 +160,24 @@ def main():
         epilog="""
 Examples:
   %(prog)s --preset baroque -o baroque.svg
-  %(prog)s --r1 250 --r2 1 --r3 100 -o custom.svg
-  %(prog)s --r1 300 --r2 5 --r3 80 --points 400 --revolutions 30 -o intricate.svg
+  %(prog)s --preset baroque --points 10 -o baroque_10.svg
+  %(prog)s --r1 300 --r2 7 --r3 100 --points 500 --revolutions 40 -o custom.svg
+  %(prog)s --r1 300 --r2 7 --r3 100 --save mypattern
 
-Presets: """ + ", ".join(PRESETS.keys()),
+Presets (use --preset NAME, override any parameter with explicit flags):
+""" + "\n".join(f"  {name:12s} r1={p['r1']}, r2={p['r2']}, r3={p['r3']}, points={p['points']}, revolutions={p['revolutions']}" for name, p in all_presets.items()),
     )
 
     parser.add_argument(
         "--preset",
-        choices=list(PRESETS.keys()),
-        help="Use a named preset (overrides --r1, --r2, --r3 if specified)",
+        type=str,
+        help="Use a named preset from presets.json (individual parameters can still override)",
+    )
+    parser.add_argument(
+        "--save",
+        type=str,
+        metavar="NAME",
+        help="Save the resolved parameters as a named preset to presets.json",
     )
     parser.add_argument(
         "--r1",
@@ -229,14 +250,26 @@ Presets: """ + ", ".join(PRESETS.keys()),
 
     args = parser.parse_args()
 
-    # Use preset if specified
+    # Track which args were explicitly provided on the command line
+    explicit_args = {
+        action.dest
+        for action in parser._actions
+        if action.dest in vars(args) and action.dest != "help"
+        and any(opt in sys.argv for opt in action.option_strings)
+    }
+
+    # Use preset as base, then let explicit CLI args override
     if args.preset:
-        preset = PRESETS[args.preset]
-        r1 = preset["r1"]
-        r2 = preset["r2"]
-        r3 = preset["r3"]
-        points = preset["points"]
-        revolutions = preset["revolutions"]
+        # User presets take priority over built-in presets
+        if args.preset in all_presets:
+            preset = all_presets[args.preset]
+        else:
+            parser.error(f"unknown preset '{args.preset}'. Available: {', '.join(sorted(all_presets))}")
+        r1 = preset["r1"] if "r1" not in explicit_args else args.r1
+        r2 = preset["r2"] if "r2" not in explicit_args else args.r2
+        r3 = preset["r3"] if "r3" not in explicit_args else args.r3
+        points = preset["points"] if "points" not in explicit_args else args.points
+        revolutions = preset["revolutions"] if "revolutions" not in explicit_args else args.revolutions
         preset_name = args.preset
     else:
         r1 = args.r1
@@ -245,6 +278,14 @@ Presets: """ + ", ".join(PRESETS.keys()),
         points = args.points
         revolutions = args.revolutions
         preset_name = "custom"
+
+    # Save preset if requested
+    if args.save:
+        save_preset(args.save, {
+            "r1": r1, "r2": r2, "r3": r3,
+            "points": points, "revolutions": revolutions,
+        })
+        print(f"✓ Preset '{args.save}' saved to {USER_PRESETS_FILE}")
 
     # Create output directory if it doesn't exist
     output_dir = args.directory

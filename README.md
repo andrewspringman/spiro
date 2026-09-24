@@ -28,74 +28,53 @@ Where:
 
 ## Installation
 
-### Option 1: Clone and run directly
-
 ```bash
 git clone https://github.com/andrewspringman/spiro.git
 cd spiro
+python3 -m venv .venv
+source .venv/bin/activate
 pip install svgwrite
 python spirograph.py --help
 ```
 
-### Option 2: Make it executable
-
-```bash
-chmod +x spirograph.py
-./spirograph.py --preset baroque -o my_pattern.svg
-```
-
 ## Usage
 
-### Quick Start: Use a Preset
-
-Generate one of four built-in preset patterns:
+### Use a Preset
 
 ```bash
-# Baroque-inspired intricate pattern
-python spirograph.py --preset baroque -o baroque.svg
-
-# Intricate design with fine details
-python spirograph.py --preset intricate -o intricate.svg
-
-# Simple, elegant pattern
-python spirograph.py --preset simple -o simple.svg
-
-# Delicate, precise design
-python spirograph.py --preset delicate -o delicate.svg
+python spirograph.py --preset baroque
+python spirograph.py --preset intricate
+python spirograph.py --preset simple
+python spirograph.py --preset delicate
 ```
 
-### Advanced: Custom Parameters
+### Override Preset Parameters
+
+Presets set defaults for r1, r2, r3, points, and revolutions. Any of these can be overridden:
 
 ```bash
-# Custom radii and parameters
-python spirograph.py \
-  --r1 300 \
-  --r2 7 \
-  --r3 100 \
-  --points 500 \
-  --revolutions 40 \
-  -o custom.svg
+# Baroque with fewer points
+python spirograph.py --preset baroque --points 10
 
-# Change colors and line width
-python spirograph.py \
-  --preset intricate \
-  --color "#FF6B6B" \
-  --stroke-width 2.0 \
-  -o colored.svg
+# Delicate with a different outer radius
+python spirograph.py --preset delicate --r1 400
 
-# Generate multiple sizes
-python spirograph.py \
-  --preset baroque \
-  --width 2000 \
-  --height 2000 \
-  -o large_baroque.svg
+# Intricate with custom color and size
+python spirograph.py --preset intricate --color "#FF6B6B" --width 2000 --height 2000
+```
+
+### Fully Custom
+
+```bash
+python spirograph.py --r1 300 --r2 7 --r3 100 --points 500 --revolutions 40 -o custom.svg
 ```
 
 ## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--preset` | — | Use a named preset (baroque, intricate, simple, delicate) |
+| `--preset` | — | Use a named preset from `presets.json` |
+| `--save` | — | Save resolved parameters as a named preset to `presets.json` |
 | `--r1` | 250 | Radius of fixed (outer) circle |
 | `--r2` | 1 | Radius of rolling (inner) circle |
 | `--r3` | 100 | Distance from rolling circle center to drawing point |
@@ -108,23 +87,22 @@ python spirograph.py \
 | `-o, --output` | spirograph.svg | Output file path |
 | `-d, --directory` | ./output | Output directory |
 
-## Presets Explained
+## Saving Presets
 
-### Baroque
-- Parameters: r1=250, r2=1, r3=100
-- Characteristic: Highly intricate, many fine details
+Save any parameter combination as a named preset for reuse:
 
-### Intricate
-- Parameters: r1=300, r2=5, r3=80
-- Characteristic: Complex with balanced detail
+```bash
+# Save a custom preset
+python spirograph.py --r1 300 --r2 7 --r3 100 --points 500 --revolutions 40 --save mypattern
 
-### Simple
-- Parameters: r1=200, r2=50, r3=100
-- Characteristic: Bold, clear, easy to recognize
+# Use the saved preset later
+python spirograph.py --preset mypattern
 
-### Delicate
-- Parameters: r1=280, r2=3, r3=120
-- Characteristic: Fine, precise, lace-like
+# Save a modified preset under a new name
+python spirograph.py --preset baroque --points 10 --save baroque_lite
+```
+
+Presets are stored in `presets.json` alongside the script. Several presets are included out of the box: `baroque`, `intricate`, `simple`, and `delicate`. Run `--help` to see all available presets and their parameters.
 
 ## License
 
