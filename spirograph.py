@@ -18,6 +18,7 @@ where:
 import argparse
 import json
 import math
+import subprocess
 import sys
 from pathlib import Path
 from typing import Tuple
@@ -48,10 +49,10 @@ def spirograph(
     r1: float,
     r2: float,
     r3: float,
-    width: int = 800,
-    height: int = 800,
+    width: float = 800,
+    height: float = 800,
     points: int = 250,
-    revolutions: int = 50,
+    revolutions: float = 50,
     stroke_color: str = "black",
     stroke_width: float = 1.0,
 ) -> Tuple[int, int, list]:
@@ -101,10 +102,10 @@ def generate_svg(
     r1: float,
     r2: float,
     r3: float,
-    width: int = 1000,
-    height: int = 1000,
+    width: float = 1000,
+    height: float = 1000,
     points: int = 250,
-    revolutions: int = 50,
+    revolutions: float = 50,
     stroke_color: str = "black",
     stroke_width: float = 1.0,
 ) -> None:
@@ -205,19 +206,19 @@ Presets (use --preset NAME, override any parameter with explicit flags):
     )
     parser.add_argument(
         "--revolutions",
-        type=int,
+        type=float,
         default=50,
         help="Number of complete revolutions (default: 50)",
     )
     parser.add_argument(
         "--width",
-        type=int,
+        type=float,
         default=1000,
         help="SVG canvas width in pixels (default: 1000)",
     )
     parser.add_argument(
         "--height",
-        type=int,
+        type=float,
         default=1000,
         help="SVG canvas height in pixels (default: 1000)",
     )
@@ -239,6 +240,11 @@ Presets (use --preset NAME, override any parameter with explicit flags):
         type=Path,
         default=Path("spirograph.svg"),
         help="Output file path (default: spirograph.svg)",
+    )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the output file after generating",
     )
     parser.add_argument(
         "-d",
@@ -314,6 +320,9 @@ Presets (use --preset NAME, override any parameter with explicit flags):
         args.stroke_width,
     )
     print(f"✓ Saved to: {output_file}")
+
+    if args.open:
+        subprocess.run(["open", str(output_file)])
 
 
 if __name__ == "__main__":

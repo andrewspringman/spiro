@@ -75,6 +75,7 @@ python spirograph.py --r1 300 --r2 7 --r3 100 --points 500 --revolutions 40 -o c
 |-----------|---------|-------------|
 | `--preset` | — | Use a named preset from `presets.json` |
 | `--save` | — | Save resolved parameters as a named preset to `presets.json` |
+| `--open` | — | Open the output file after generating |
 | `--r1` | 250 | Radius of fixed (outer) circle |
 | `--r2` | 1 | Radius of rolling (inner) circle |
 | `--r3` | 100 | Distance from rolling circle center to drawing point |

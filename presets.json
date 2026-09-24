@@ -26,5 +26,12 @@
     "r3": 120,
     "points": 350,
     "revolutions": 40
+  },
+  "simpler": {
+    "r1": 100.0,
+    "r2": 50,
+    "r3": 100,
+    "points": 100,
+    "revolutions": 10
   }
 }
